@@ -5,6 +5,13 @@ import uvicorn
 import cv2
 from emotion_detector import EmotionDetector
 import asyncio
+from datetime import datetime
+from io import BytesIO
+from fastapi import Response, HTTPException, status
+from pydantic import BaseModel
+import os
+
+os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
 
 app = FastAPI()
 
@@ -28,6 +35,8 @@ templates = Jinja2Templates(directory="templates")
 
 showing_emotion = 'false'
 
+emotion_detector = EmotionDetector()
+
 
 # async def receive_message(websocket: WebSocket):
 #     global show
@@ -38,11 +47,31 @@ def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+# 감정 분석 결과 화면에 보여준다
 @app.get('/emotion')
-def show_emotion(show: str):
+async def show_emotion(show: str):
     global showing_emotion
     showing_emotion = show
-    return "ok"
+
+
+# 면접 시작한다 (감정 초기화)
+@app.get('/start-interview')
+async def start_analysis():
+    emotion_detector.start_emotion_analysis()
+
+
+@app.get('/stop-interview')
+async def show_result():
+    emotion_detector.end_emotion_analysis()
+    if not emotion_detector.is_analyzed():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    plt = emotion_detector.get_happy_result()
+    buf = BytesIO()
+    plt.savefig(buf, format="png")
+    plt.close()
+    response = Response(buf.getvalue(), media_type="image/png")
+    buf.close()
+    return response
 
 
 @app.websocket("/emotion-cam")
@@ -53,7 +82,7 @@ async def get_stream_with_emotion(websocket: WebSocket, background_tasks: Backgr
     camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
     print('emotion cam started...')
-    emotion_detector = EmotionDetector()
+    # emotion_detector.start_emotion_analysis()
 
     global showing_emotion
     showing_emotion = 'false'
@@ -69,11 +98,12 @@ async def get_stream_with_emotion(websocket: WebSocket, background_tasks: Backgr
             else:
                 # frame = emotion_detector.add_frame(frame)
                 # 소켓에 이미지 보낸다
-                if showing_emotion == 'true':
-                    frame = await emotion_detector.add_frame(frame, 'true')
-                else:
-                    # emotion_detector.add_frame(frame)
-                    asyncio.create_task(emotion_detector.add_frame(frame))
+                if emotion_detector.detecting:
+                    if showing_emotion == 'true':
+                        frame = await emotion_detector.add_frame(frame, 'true')
+                    else:
+                        # emotion_detector.add_frame(frame)
+                        asyncio.create_task(emotion_detector.add_frame(frame))
                 try:
                     ret, buffer = cv2.imencode('.jpg', frame)
                 except:

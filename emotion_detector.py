@@ -2,14 +2,14 @@ import os
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-import tensorflow as tf
-
 from keras_preprocessing.image import img_to_array
 import imutils
 import cv2
 from keras.models import load_model
 import numpy as np
 import matplotlib.pyplot as plt
+
+plt.switch_backend('agg')
 
 '''
 초기화 시에 빈 배열을 생성한다.
@@ -32,7 +32,40 @@ graph_label = ["smile", "non-smile"]
 class EmotionDetector:
     def __init__(self):
         self.emotion_cal = [0, 0, 0, 0, 0, 0, 0]
+        self.detecting = False
+
+    # 새로 시작하기 전까진 종료 후에도 계속 결과 저장
+    def start_emotion_analysis(self):
+        self.emotion_cal = [0, 0, 0, 0, 0, 0, 0]
+        self.detecting = True
         print('emotion values init')
+
+    def end_emotion_analysis(self):
+        self.detecting = False
+
+    def is_analyzed(self):
+        emotion_all = 0
+        for i in range(7):
+            emotion_all += self.emotion_cal[i]
+            if emotion_all != 0:
+                break
+        if emotion_all == 0:
+            return False
+        else:
+            return True
+
+    def get_happy_result(self):
+        emotion_all = 0
+        for i in range(7):
+            print(str(EMOTIONS[i]) + ":" + str(self.emotion_cal[i]))  # emotion 값 확인
+            emotion_all += self.emotion_cal[i]
+        happy_per = self.emotion_cal[3] / emotion_all
+        print("happy percentile : " + str(happy_per * 100) + "%")
+        ratio = [happy_per * 100, 100 - happy_per * 100]
+        explode = [0.1, 0.1]  # 중심에서 벗어난 정도
+        colors = ['gold', 'lightgray']
+        plt.pie(ratio, labels=graph_label, autopct='%.1f%%', explode=explode, shadow=True, colors=colors)
+        return plt
 
     async def add_frame(self, frame, show_emotion='false'):
         # reading the frame
