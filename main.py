@@ -1,11 +1,25 @@
 from fastapi import BackgroundTasks, FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import cv2
 from emotion_detector import EmotionDetector
 import asyncio
 
 app = FastAPI()
+
+origins = [
+    "http://localhost",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # 크기 변환
 # camera.set(3, 1640)
 # camera.set(4, 1480)
