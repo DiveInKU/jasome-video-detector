@@ -65,7 +65,7 @@ class EmotionDetector:
         explode = [0.1, 0.1]  # 중심에서 벗어난 정도
         colors = ['gold', 'lightgray']
         plt.pie(ratio, labels=graph_label, autopct='%.1f%%', explode=explode, shadow=True, colors=colors)
-        return plt
+        return plt, happy_per
 
     async def add_frame(self, frame, show_emotion='false'):
         # reading the frame

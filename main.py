@@ -27,6 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # 크기 변환
 # camera.set(3, 1640)
 # camera.set(4, 1480)
@@ -65,11 +66,11 @@ async def show_result():
     emotion_detector.end_emotion_analysis()
     if not emotion_detector.is_analyzed():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    plt = emotion_detector.get_happy_result()
+    plt, happy_per = emotion_detector.get_happy_result()
     buf = BytesIO()
     plt.savefig(buf, format="png")
     plt.close()
-    response = Response(buf.getvalue(), media_type="image/png")
+    response = Response(buf.getvalue(),headers={'happy': str(happy_per) }, media_type="image/png")
     buf.close()
     return response
 
