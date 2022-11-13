@@ -6,7 +6,6 @@ from emotion_detector import EmotionDetector
 import asyncio
 
 app = FastAPI()
-camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 # 크기 변환
 # camera.set(3, 1640)
 # camera.set(4, 1480)
@@ -36,6 +35,8 @@ def show_emotion(show: str):
 async def get_stream_with_emotion(websocket: WebSocket, background_tasks: BackgroundTasks):
     # 소켓 연결 -> 카메라 읽기 시작한 후에 소켓으로 이미지를 보내준다
     await websocket.accept()
+
+    camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
     print('emotion cam started...')
     emotion_detector = EmotionDetector()
@@ -67,12 +68,16 @@ async def get_stream_with_emotion(websocket: WebSocket, background_tasks: Backgr
                 await websocket.send_bytes(buffer.tobytes())
     except WebSocketDisconnect:
         print("Client disconnected")
+    camera.release()
 
 
 @app.websocket("/test-cam")
 async def get_stream(websocket: WebSocket):
     # 소켓 연결 -> 카메라 읽기 시작한 후에 소켓으로 이미지를 보내준다
     await websocket.accept()
+
+    camera = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+
     print('test cam started...')
     try:
         while True:
@@ -90,6 +95,7 @@ async def get_stream(websocket: WebSocket):
                 await websocket.send_bytes(buffer.tobytes())
     except WebSocketDisconnect:
         print("Client disconnected")
+    camera.release()
 
 
 if __name__ == '__main__':
