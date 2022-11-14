@@ -9,6 +9,7 @@ from datetime import datetime
 from io import BytesIO
 from fastapi import Response, HTTPException, status
 from pydantic import BaseModel
+from fastapi.responses import StreamingResponse
 import os
 
 os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
@@ -63,17 +64,24 @@ async def start_analysis():
 
 @app.get('/stop-interview')
 async def show_result():
+    # if not emotion_detector.detecting:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     emotion_detector.end_emotion_analysis()
-    if not emotion_detector.is_analyzed():
+    # if not emotion_detector.is_analyzed():
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    try:
+        plt, happy_per = emotion_detector.get_happy_result()
+    except ZeroDivisionError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    plt, happy_per = emotion_detector.get_happy_result()
     buf = BytesIO()
     plt.savefig(buf, format="png")
-    plt.close()
-    response = Response(buf.getvalue(),headers={'happy': str(happy_per) }, media_type="image/png")
-    buf.close()
-    return response
-
+    buf.seek(0)
+    return Response(content=buf.getvalue(), headers={'happy': str(happy_per) }, media_type="image/png")
+    # response = Response(buf.getvalue(), headers={'happy': str(happy_per) }, media_type="image/png")
+    # buf.close()
+    # return response
+    # buf.seek(0)
+    # return StreamingResponse(buf, media_type="image/png")
 
 @app.websocket("/emotion-cam")
 async def get_stream_with_emotion(websocket: WebSocket, background_tasks: BackgroundTasks):
