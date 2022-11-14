@@ -73,10 +73,11 @@ async def show_result():
         plt, happy_per = emotion_detector.get_happy_result()
     except ZeroDivisionError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    buf = BytesIO()
-    plt.savefig(buf, format="png")
-    buf.seek(0)
-    return Response(content=buf.getvalue(), headers={'happy': str(happy_per) }, media_type="image/png")
+    # buf = BytesIO()
+    # plt.savefig(buf, format="png")
+    # buf.seek(0)
+    return str(happy_per)
+    # return Response(content=buf.getvalue(), headers={'happy': str(happy_per) }, media_type="image/png")
     # response = Response(buf.getvalue(), headers={'happy': str(happy_per) }, media_type="image/png")
     # buf.close()
     # return response
