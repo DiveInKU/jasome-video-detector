@@ -28,7 +28,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # 크기 변환
 # camera.set(3, 1640)
 # camera.set(4, 1480)
@@ -38,6 +37,7 @@ templates = Jinja2Templates(directory="templates")
 showing_emotion = 'false'
 
 emotion_detector = EmotionDetector()
+EMOTIONS = ["angry", "disgust", "scared", "happy", "sad", "surprised", "neutral"]
 
 
 # async def receive_message(websocket: WebSocket):
@@ -62,27 +62,21 @@ async def start_analysis():
     emotion_detector.start_emotion_analysis()
 
 
-@app.get('/stop-interview')
+class EmotionList(BaseModel):
+    emotions: list[str] = []
+    values:  list[int] = []
+
+
+@app.get('/stop-interview', response_model=EmotionList)
 async def show_result():
-    # if not emotion_detector.detecting:
-    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     emotion_detector.end_emotion_analysis()
-    # if not emotion_detector.is_analyzed():
+    # try:
+    #     plt, happy_per = emotion_detector.get_happy_result()
+    # except ZeroDivisionError:
     #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    try:
-        plt, happy_per = emotion_detector.get_happy_result()
-    except ZeroDivisionError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    # buf = BytesIO()
-    # plt.savefig(buf, format="png")
-    # buf.seek(0)
-    return str(happy_per)
-    # return Response(content=buf.getvalue(), headers={'happy': str(happy_per) }, media_type="image/png")
-    # response = Response(buf.getvalue(), headers={'happy': str(happy_per) }, media_type="image/png")
-    # buf.close()
-    # return response
-    # buf.seek(0)
-    # return StreamingResponse(buf, media_type="image/png")
+    # return str(happy_per)
+    return {'emotions': EMOTIONS, 'values': emotion_detector.emotion_cal}
+
 
 @app.websocket("/emotion-cam")
 async def get_stream_with_emotion(websocket: WebSocket, background_tasks: BackgroundTasks):
