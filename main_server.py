@@ -16,7 +16,7 @@ from emotion_detector2 import EmotionDetector
 # cap=cv2.VideoCapture(0)  ##when removing debug=True or using gevent or eventlet uncomment this line and comment the cap=cv2.VideoCapture(0) in gen(json)
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, resources={r"*": {"origins": ["http://localhost:3000"]}}, cors_allowed_origins='*')
+socketio = SocketIO(app, cors_allowed_origins='http://localhost:3000')
 
 interview_number = 0
 
@@ -56,17 +56,16 @@ def gen(json):
 
 @socketio.on('image')
 def receiveImage(request):
-    # print(request)
     current_interview = request['interviewNumber']
     base64_image_url = request['image']
-    if base64_image_url:
-        # print(base64_image_url)
-        # ret, buffer = cv2.imencode('.webp', img)
-        header, data = base64_image_url.split(',', 1)
-        image_data = base64.b64decode(data)
-        np_array = np.frombuffer(image_data, np.uint8)
-        # asyncio.create_task(emotion_detector.add_frame(np_array, current_interview))
-        # emotion_detector.add_frame(np_array, current_interview)
+    # print(base64_image_url)
+    # ret, buffer = cv2.imencode('.webp', img)
+    header, data = base64_image_url.split(',', 1)
+    image_data = base64.b64decode(data)
+    np_array = np.frombuffer(image_data, np.uint8)
+    # asyncio.create_task(emotion_detector.add_frame(np_array, current_interview))
+    result = emotion_detector.add_frame(np_array, current_interview)
+
 
 @socketio.on('query_result')
 def getResult(request):
