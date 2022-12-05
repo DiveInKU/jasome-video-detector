@@ -46,7 +46,7 @@ EMOTIONS = ["angry", "disgust", "scared", "happy", "sad", "surprised", "neutral"
 
 @app.get('/')
 def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html", {'calcName':start_analysis ,"request": request})
 
 
 # 감정 분석 결과 화면에 보여준다
@@ -59,6 +59,7 @@ async def show_emotion(show: str):
 # 면접 시작한다 (감정 초기화)
 @app.get('/start-interview')
 async def start_analysis():
+    print('start...')
     emotion_detector.start_emotion_analysis()
 
 
@@ -147,4 +148,4 @@ async def get_stream(websocket: WebSocket):
 
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='127.0.0.1', port=8000)
+    uvicorn.run('main:app', host='127.0.0.1', port=8000, reload=True)

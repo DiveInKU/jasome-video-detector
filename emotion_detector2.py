@@ -31,22 +31,12 @@ graph_label = ["smile", "non-smile"]
 
 class EmotionDetector:
     def __init__(self):
-        self.emotion_cal = [0, 0, 0, 0, 0, 0, 0]
-        self.detecting = True
+        self.analysis_result = {}
 
-    # 새로 시작하기 전까진 종료 후에도 계속 결과 저장
-    def start_emotion_analysis(self):
-        self.emotion_cal = [0, 0, 0, 0, 0, 0, 0]
-        self.detecting = True
-        print('emotion values init')
-
-    def end_emotion_analysis(self):
-        self.detecting = False
-
-    def is_analyzed(self):
+    def is_analyzed(self, interview_number):
         emotion_all = 0
         for i in range(7):
-            emotion_all += self.emotion_cal[i]
+            emotion_all += self.analysis_result[interview_number][i]
             if emotion_all != 0:
                 break
         if emotion_all == 0:
@@ -54,12 +44,15 @@ class EmotionDetector:
         else:
             return True
 
-    def get_happy_result(self):
+    def get_result(self, interview_number):
+        return self.analysis_result[interview_number]
+
+    def get_happy_result(self, interview_number):
         emotion_all = 0
         for i in range(7):
-            print(str(EMOTIONS[i]) + ":" + str(self.emotion_cal[i]))  # emotion 값 확인
-            emotion_all += self.emotion_cal[i]
-        happy_per = self.emotion_cal[3] / emotion_all
+            print(str(EMOTIONS[i]) + ":" + str(self.analysis_result[interview_number][i]))  # emotion 값 확인
+            emotion_all += self.analysis_result[interview_number][i]
+        happy_per = self.analysis_result[interview_number][3] / emotion_all
         print("happy percentile : " + str(happy_per * 100) + "%")
         ratio = [happy_per * 100, 100 - happy_per * 100]
         explode = [0.1, 0.1]  # 중심에서 벗어난 정도
@@ -67,8 +60,7 @@ class EmotionDetector:
         plt.pie(ratio, labels=graph_label, autopct='%.1f%%', explode=explode, shadow=True, colors=colors)
         return plt, happy_per
 
-
-    async def add_frame(self, frame, show_emotion='false'):
+    async def add_frame(self, frame, interview_number):
         # reading the frame
         frame = imutils.resize(frame, width=300)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -92,32 +84,34 @@ class EmotionDetector:
             preds = emotion_classifier.predict(roi)[0]
             emotion_probability = np.max(preds)
             label = EMOTIONS[preds.argmax()]
+            print(label)
+            return label
         else:
             return frame
 
-        for (i, (emotion, prob)) in enumerate(zip(EMOTIONS, preds)):
-            # construct the label text
-            text = "{}: {:.2f}%".format(emotion, prob * 100)
-
-            # draw the label + probability bar on the canvas
-            # emoji_face = feelings_faces[np.argmax(preds)]
-
-            w = int(prob * 300)
-            cv2.rectangle(canvas, (7, (i * 35) + 5),
-                          (w, (i * 35) + 35), (0, 0, 255), -1)
-            cv2.putText(canvas, text, (10, (i * 35) + 23),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45,
-                        (255, 255, 255), 2)
-            cv2.putText(frame_clone, label, (fX, fY - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
-            cv2.rectangle(frame_clone, (fX, fY), (fX + fW, fY + fH),
-                          (0, 0, 255), 2)
-            self.emotion_cal[preds.argmax()] = self.emotion_cal[preds.argmax()] + 1
+        # for (i, (emotion, prob)) in enumerate(zip(EMOTIONS, preds)):
+        #     # construct the label text
+        #     text = "{}: {:.2f}%".format(emotion, prob * 100)
+        #
+        #     # draw the label + probability bar on the canvas
+        #     # emoji_face = feelings_faces[np.argmax(preds)]
+        #
+        #     w = int(prob * 300)
+        #     cv2.rectangle(canvas, (7, (i * 35) + 5),
+        #                   (w, (i * 35) + 35), (0, 0, 255), -1)
+        #     cv2.putText(canvas, text, (10, (i * 35) + 23),
+        #                 cv2.FONT_HERSHEY_SIMPLEX, 0.45,
+        #                 (255, 255, 255), 2)
+        #     cv2.putText(frame_clone, label, (fX, fY - 10),
+        #                 cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+        #     cv2.rectangle(frame_clone, (fX, fY), (fX + fW, fY + fH),
+        #                   (0, 0, 255), 2)
+        #     self.analysis_result[client_number][preds.argmax()] = self.analysis_result[client_number][preds.argmax()] + 1
         #    for c in range(0, 3):
         #        frame[200:320, 10:130, c] = emoji_face[:, :, c] * \
         #        (emoji_face[:, :, 3] / 255.0) + frame[200:320,
         #        10:130, c] * (1.0 - emoji_face[:, :, 3] / 255.0)
-        if show_emotion == 'true':
-            return frame_clone
-        else:
-            return frame
+        # if show_emotion == 'true':
+        #     return frame_clone
+        # else:
+        #     return frame

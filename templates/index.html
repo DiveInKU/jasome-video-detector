@@ -5,6 +5,7 @@
     </head>
     <body>
         <img id="frame" src="">
+        <button onclick="handleButton()">분석 시작</button>
         <script>
             let ws = new WebSocket("ws://localhost:8000/emotion-cam");
             let image = document.getElementById("frame");
@@ -14,6 +15,9 @@
             ws.onmessage = function(event) {
                 image.src = URL.createObjectURL(event.data);
             };
+            function handleButton(){
+                console.log('button clicked...')
+            }
         </script>
     </body>
 </html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title> flask websocket</title>
+</head>
+<body>
+	<div class="div">
+    <img id="image1">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.js"></script>
+    <script type="text/javascript">
+     var socket = io.connect('http://' + document.domain + ':' + location.port);
+     var i = 0;
+     socket.on('connect' ,function()
+     {
+        console.log('connect...')
+     	socket.emit('interview_start')
+     });
+     socket.on('image', function(msg)
+     {
+<!--        console.log('image...')-->
+        const image_element=document.getElementById('image1');
+        image_element.src="data:image/jpeg;base64,"+msg;
+     });
+     socket.on('interview_number', (msg) => {console.log('interview_number', msg)});
+
+     function sendMessage() {
+        socket.emit('check', i)
+        console.log(i)
+        i += 1
+     }
+    </script>
+        <button onclick="sendMessage()">메세지 보내기</button>
+</body>
+</html>
