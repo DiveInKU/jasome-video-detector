@@ -3,6 +3,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import cv2
+from websockets.exceptions import ConnectionClosedError
+
 from emotion_detector import EmotionDetector
 import asyncio
 from datetime import datetime
@@ -98,23 +100,21 @@ async def get_stream_with_emotion(websocket: WebSocket, background_tasks: Backgr
             # 반전
             frame = cv2.flip(frame, 2)
             if not success:
+                print('fail...')
                 break
             else:
                 # frame = emotion_detector.add_frame(frame)
                 # 소켓에 이미지 보낸다
-                if emotion_detector.detecting:
-                    if showing_emotion == 'true':
-                        frame = await emotion_detector.add_frame(frame, 'true')
-                    else:
-                        # emotion_detector.add_frame(frame)
-                        asyncio.create_task(emotion_detector.add_frame(frame))
-                try:
-                    ret, buffer = cv2.imencode('.jpg', frame)
-                except:
-                    print(buffer)
-                    break
+                # if emotion_detector.detecting:
+                # frame = await emotion_detector.add_frame(frame, 'true')
+                if showing_emotion == 'true':
+                    frame = await emotion_detector.add_frame(frame, 'true')
+                else:
+                    # emotion_detector.add_frame(frame)
+                    asyncio.create_task(emotion_detector.add_frame(frame))
+                ret, buffer = cv2.imencode('.jpg', frame)
                 await websocket.send_bytes(buffer.tobytes())
-    except WebSocketDisconnect:
+    except ConnectionClosedError:
         print("Client disconnected")
     camera.release()
 
@@ -141,7 +141,7 @@ async def get_stream(websocket: WebSocket):
                     print(buffer)
                     break
                 await websocket.send_bytes(buffer.tobytes())
-    except WebSocketDisconnect:
+    except ConnectionClosedError:
         print("Client disconnected")
     camera.release()
 

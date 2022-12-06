@@ -103,16 +103,20 @@ class EmotionDetector:
             # emoji_face = feelings_faces[np.argmax(preds)]
 
             w = int(prob * 300)
-            cv2.rectangle(canvas, (7, (i * 35) + 5),
-                          (w, (i * 35) + 35), (0, 0, 255), -1)
-            cv2.putText(canvas, text, (10, (i * 35) + 23),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45,
-                        (255, 255, 255), 2)
+            # cv2.rectangle(canvas, (7, (i * 35) + 5),
+            #               (w, (i * 35) + 35), (0, 0, 255), -1)
+            # cv2.putText(canvas, text, (10, (i * 35) + 23),
+            #             cv2.FONT_HERSHEY_SIMPLEX, 0.45,
+            #             (255, 255, 255), 2)
+            color = (0, 0, 255)
+            label = EMOTIONS[preds.argmax()]
+            if label == 'happy':
+                color = (0, 255, 0)
             cv2.putText(frame_clone, label, (fX, fY - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
             cv2.rectangle(frame_clone, (fX, fY), (fX + fW, fY + fH),
-                          (0, 0, 255), 2)
-            self.emotion_cal[preds.argmax()] = self.emotion_cal[preds.argmax()] + 1
+                          color, 2)
+        self.emotion_cal[preds.argmax()] = self.emotion_cal[preds.argmax()] + 1
         #    for c in range(0, 3):
         #        frame[200:320, 10:130, c] = emoji_face[:, :, c] * \
         #        (emoji_face[:, :, 3] / 255.0) + frame[200:320,
