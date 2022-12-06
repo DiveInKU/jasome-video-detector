@@ -60,9 +60,9 @@ class EmotionDetector:
         plt.pie(ratio, labels=graph_label, autopct='%.1f%%', explode=explode, shadow=True, colors=colors)
         return plt, happy_per
 
-    async def add_frame(self, frame, interview_number):
+    def add_frame(self, frame, interview_number, socketio):
         # reading the frame
-        frame = imutils.resize(frame, width=300)
+        # frame = imutils.resize(frame, width=300)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = face_detection.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30),
                                                 flags=cv2.CASCADE_SCALE_IMAGE)
@@ -85,8 +85,10 @@ class EmotionDetector:
             emotion_probability = np.max(preds)
             label = EMOTIONS[preds.argmax()]
             print(label)
+            # socketio.emit('result', label)
             return label
         else:
+            # socketio.emit('result', 'none')
             return frame
 
         # for (i, (emotion, prob)) in enumerate(zip(EMOTIONS, preds)):

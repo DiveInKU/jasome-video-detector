@@ -1,10 +1,13 @@
 import asyncio
-
+import io
+from PIL import Image
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 from fastapi import FastAPI, Request
 from fastapi_socketio import SocketManager
 from time import sleep
+import eventlet
+import eventlet.wsgi
 import cv2
 import json
 import base64
@@ -16,13 +19,13 @@ from emotion_detector2 import EmotionDetector
 # cap=cv2.VideoCapture(0)  ##when removing debug=True or using gevent or eventlet uncomment this line and comment the cap=cv2.VideoCapture(0) in gen(json)
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins='http://localhost:3000')
+socketio = SocketIO(app, ping_timeout=180, ping_interval=180, cors_allowed_origins='http://localhost:3000', async_mode='eventlet')
 
 interview_number = 0
 
 emotion_detector = EmotionDetector()
 EMOTIONS = ["angry", "disgust", "scared", "happy", "sad", "surprised", "neutral"]
-
+emotion_emoji = ["😠", "🤢", "😨", "😊", "☹", "😯", "😐"]
 
 @app.route('/')
 def index():
@@ -58,14 +61,22 @@ def gen(json):
 def receiveImage(request):
     current_interview = request['interviewNumber']
     base64_image_url = request['image']
-    # print(base64_image_url)
+    print(current_interview)
     # ret, buffer = cv2.imencode('.webp', img)
     header, data = base64_image_url.split(',', 1)
     image_data = base64.b64decode(data)
-    np_array = np.frombuffer(image_data, np.uint8)
+    image_bytes = io.BytesIO(image_data)
+    image = Image.open(image_bytes)
+    np_array = np.array(image)
     # asyncio.create_task(emotion_detector.add_frame(np_array, current_interview))
-    result = emotion_detector.add_frame(np_array, current_interview)
-
+    # result = await emotion_detector.add_frame(np_array, current_interview)
+    # print(result)
+    # asyncio.create_task(emotion_detector.add_frame(np_array, current_interview))
+    # result = emotion_detector.add_frame(np_array, current_interview)
+    # print(result)
+    # loop = asyncio.get_event_loop()
+    # loop.run_until_complete(emotion_detector.add_frame(np_array, current_interview))
+    emotion_detector.add_frame(np_array, current_interview, socketio)
 
 @socketio.on('query_result')
 def getResult(request):
