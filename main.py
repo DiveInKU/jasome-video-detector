@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import cv2
 from websockets.exceptions import ConnectionClosedError
-
+from gaze_tracking.gaze_tracker import GazeTracker
 from emotion_detector import EmotionDetector
 import asyncio
 from datetime import datetime
@@ -39,6 +39,7 @@ templates = Jinja2Templates(directory="templates")
 showing_emotion = 'false'
 
 emotion_detector = EmotionDetector()
+gaze_tracker = GazeTracker()
 EMOTIONS = ["angry", "disgust", "scared", "happy", "sad", "surprised", "neutral"]
 
 
@@ -77,7 +78,9 @@ async def show_result():
     # except ZeroDivisionError:
     #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     # return str(happy_per)
-    return {'emotions': EMOTIONS, 'values': emotion_detector.emotion_cal}
+    print(gaze_tracker.x_data, gaze_tracker.y_data)
+    print({'emotions': EMOTIONS, 'values': emotion_detector.emotion_cal, 'x_data': gaze_tracker.x_data, 'y_data': gaze_tracker.y_data})
+    return {'emotions': EMOTIONS, 'values': emotion_detector.emotion_cal, 'x_data': gaze_tracker.x_data, 'y_data': gaze_tracker.y_data}
 
 
 @app.websocket("/emotion-cam")
@@ -112,6 +115,7 @@ async def get_stream_with_emotion(websocket: WebSocket, background_tasks: Backgr
                 else:
                     # emotion_detector.add_frame(frame)
                     asyncio.create_task(emotion_detector.add_frame(frame))
+                asyncio.create_task(gaze_tracker.add_frame(frame))
                 ret, buffer = cv2.imencode('.jpg', frame)
                 await websocket.send_bytes(buffer.tobytes())
     except ConnectionClosedError:

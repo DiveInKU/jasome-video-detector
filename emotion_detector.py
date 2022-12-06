@@ -67,7 +67,6 @@ class EmotionDetector:
         plt.pie(ratio, labels=graph_label, autopct='%.1f%%', explode=explode, shadow=True, colors=colors)
         return plt, happy_per
 
-
     async def add_frame(self, frame, show_emotion='false'):
         # reading the frame
         frame = imutils.resize(frame, width=300)
