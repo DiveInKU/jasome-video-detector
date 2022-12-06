@@ -13,6 +13,7 @@ from fastapi import Response, HTTPException, status
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 import os
+import matplotlib.pyplot as plt
 
 os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
 
@@ -67,7 +68,10 @@ async def start_analysis():
 
 class EmotionList(BaseModel):
     emotions: list[str] = []
-    values:  list[int] = []
+    values:  list[float] = []
+    x_data:  list[float] = []
+    y_data:  list[float] = []
+
 
 
 @app.get('/stop-interview', response_model=EmotionList)
@@ -79,6 +83,12 @@ async def show_result():
     #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     # return str(happy_per)
     print(gaze_tracker.x_data, gaze_tracker.y_data)
+    plt.scatter(gaze_tracker.x_data, gaze_tracker.y_data, c='red', alpha=0.5, s=100)
+    plt.xlim(0, 1)
+    plt.ylim(0, 1)
+    plt.savefig('save.png')
+    # x_data: 오른쪽 -> 왼쪽
+    # y_data: 위 -> 아래
     print({'emotions': EMOTIONS, 'values': emotion_detector.emotion_cal, 'x_data': gaze_tracker.x_data, 'y_data': gaze_tracker.y_data})
     return {'emotions': EMOTIONS, 'values': emotion_detector.emotion_cal, 'x_data': gaze_tracker.x_data, 'y_data': gaze_tracker.y_data}
 

@@ -35,8 +35,9 @@ while True:
 
     left_pupil = gaze.pupil_left_coords()  # 왼쪽 눈동자의 위치
     right_pupil = gaze.pupil_right_coords()  # 오른쪽 눈동자의 위치
-    cv2.putText(frame, "Left pupil:  " + str(left_pupil), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
-    cv2.putText(frame, "Right pupil: " + str(right_pupil), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+    cv2.putText(frame, "horizontal:  " + str(gaze.horizontal_ratio()), (90, 130), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+    cv2.putText(frame, "vertical: " + str(gaze.vertical_ratio()), (90, 165), cv2.FONT_HERSHEY_DUPLEX, 0.9, (147, 58, 31), 1)
+
 
     if left_pupil and right_pupil:
         left_data = (str(left_pupil).split(','))
@@ -51,8 +52,8 @@ while True:
         avg_y_data = (int(left_y_data) + int(right_y_data)) / 2
 
         # print(avg_x_data, avg_y_data)
-        x_data.append(avg_x_data)
-        y_data.append(avg_y_data)
+        x_data.append(gaze.horizontal_ratio())
+        y_data.append(gaze.vertical_ratio())
 
     # print("Left pupil:  "+ str(left_pupil))
     # print("Right pupil:  "+ str(right_pupil))
@@ -63,8 +64,8 @@ while True:
         break
 
 plt.scatter(x_data, y_data, c='red', alpha=0.5, s=100)
-plt.xlim(0, 2000)
-plt.ylim(0, 400)
+plt.xlim(0, 1)
+plt.ylim(0, 1)
 plt.show()
 webcam.release()
 cv2.destroyAllWindows()

@@ -38,6 +38,6 @@ class GazeTracker:
             avg_x_data = (int(left_x_data) + int(right_x_data)) / 2
             avg_y_data = (int(left_y_data) + int(right_y_data)) / 2
 
-            self.x_data.append(avg_x_data)
-            self.y_data.append(avg_y_data)
-
+            self.x_data.append(1 - self.gaze.horizontal_ratio())
+            self.y_data.append(1 - self.gaze.vertical_ratio())
+            print(1 - self.gaze.horizontal_ratio(), 1 - self.gaze.vertical_ratio())
